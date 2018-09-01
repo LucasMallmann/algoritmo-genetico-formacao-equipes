@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_restplus import Api, Resource
 
-from Controller.population_controller import PopulationController
+from controller.population_controller import PopulationController
 from helpers.my_json_encoder import MyJsonEncoder
 import json
 
