@@ -13,8 +13,11 @@ class Dna(object):
         self.quantity_of_persons = quantity_of_persons
         self.quantity_of_groups = quantity_of_groups
         self.minimum_of_persons = minimum_of_persons
+        self.groups = []
+
         self.genes = self.fill_genes()
         self.persons = self.fill_persons()
+        self.form_groups()
 
     def fill_genes(self) -> list:
         """
@@ -41,6 +44,9 @@ class Dna(object):
         return persons_founded
 
     def fill_persons(self):
+        """
+        Preencher a lista com pessoas. As pessoas estão vindo de um arquivo json
+        """
         person_names = PersonNames()
         persons = []
         for idx, group_id in enumerate(self.genes, start=1):
@@ -48,3 +54,13 @@ class Dna(object):
             person = Person(name=name, person_id=idx, group_id=group_id)
             persons.append(person)
         return persons
+
+    def form_groups(self):
+        """
+        Busca as pessoas que tem certo group_id para formar os grupos
+        """
+        # Para contar de 1 até self.quantity_of_groups + 1
+        # O range vai de x até y-1...
+        for i in range(1, self.quantity_of_groups + 1):
+            self.groups.append(self.find_persons_by_group_id(i))
+            
