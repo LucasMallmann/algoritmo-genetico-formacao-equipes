@@ -1,5 +1,5 @@
 from flask import Blueprint
-from flask_restplus import Api, Resource
+from flask_restplus import Api, Resource, fields
 from app_api.controller.population_controller import PopulationController
 from app_api.helpers.my_json_encoder import MyJsonEncoder
 import json
