@@ -1,12 +1,13 @@
 from app_api.genetic_algorithm.population import Population
 from app_api.genetic_algorithm.dna import Dna
+import numpy as np
 
 # Está 'hardcoded'. Modificar para passar dinamicamente
-total_groups = 6
-persons_by_group = 5
-# total_persons = 28
-# minimum_of_persons = 6
-TP = 50
+total_groups = 2
+persons_by_group = 3
+
+
+TP = 25
 
 
 class PopulationController(object):
@@ -17,5 +18,6 @@ class PopulationController(object):
         """
         population = Population(total_population=TP)
         population.generate_initial_population(total_groups, persons_by_group)
+        population.calc_fitness()
 
-        return population
+        return population.population

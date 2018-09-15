@@ -17,8 +17,3 @@ class GetPopulation(Resource):
         result = my_json_encoder.encode(population).replace("\'", '"')
 
         return json.loads(result)
-
-# @api.route('/groups')
-# class Groups:
-#     def get(self):
-#         pass
