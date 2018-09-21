@@ -10,7 +10,8 @@ from app_api.helpers.person_names_json import PersonNames
 
 def generate_parameters(total_of_persons):
     return np.random.random_integers(
-            1, 5, (3, total_of_persons))
+        1, 5, (3, total_of_persons))
+
 
 class Dna(object):
 
@@ -18,13 +19,13 @@ class Dna(object):
                  quantity_of_groups: int,
                  persons_by_group: int):
 
-        self.quantity_of_groups=quantity_of_groups
-        self.persons_by_group=persons_by_group
-        self.total_of_persons=self.quantity_of_groups * self.persons_by_group
+        self.quantity_of_groups = quantity_of_groups
+        self.persons_by_group = persons_by_group
+        self.total_of_persons = self.quantity_of_groups * self.persons_by_group
         # self.groups = []
 
-        self.fitness=0
-        self.genes=self.fill_genes()
+        self.fitness = 0
+        self.genes = self.fill_genes()
         # self.persons = self.fill_persons()
         # self.form_groups()
 
@@ -34,62 +35,63 @@ class Dna(object):
         os indexs dos grupos.
         :return: list
         """
-        genes=np.empty(
-            self.total_of_persons)  # criando um espaço vazio na memória
-        groups=np.arange(1, self.quantity_of_groups + 1)
-        indexes=np.arange(len(genes))
+        genes = np.empty(self.total_of_persons)  # criando um espaço vazio na memória
+        groups = np.arange(1, self.quantity_of_groups + 1)
+        indexes = np.arange(len(genes))
 
         np.put(genes, indexes, groups)
 
         # converter os elementos dos genes para inteiro
-        genes=[int(group_idx) for group_idx in genes]
-        random.shuffle(genes)  # desordenar o array
+        genes = [int(group_idx) for group_idx in genes]
+        # random.shuffle(genes)  # desordenar o array
+        np.random.shuffle(genes)
 
         return genes
 
-    def calc_fitness(self):
+    def calc_fitness(self, parameters: np.ndarray):
         """
         Função para calcular o fitness de cada indivíduo da população
         """
+        print('\n')
         print('*' * 100)
-
-        params_matrix = generate_parameters(self.total_of_persons)
-
         # Matriz para armazenar a soma de cada Param para cada grupo
-        sum_of_params_by_group=np.zeros(
-            (len(params_matrix), self.quantity_of_groups))
+        sum_of_params_by_group = np.zeros(
+            (len(parameters), self.quantity_of_groups))
 
-        list_of_means=[]
-
-        # param_line é cada linha de parametros. Cada posição da linha é uma pessoa ou grupo
         # Calcular a soma de cada param para cada grupo
-        for param_idx, param_line in enumerate(params_matrix):
-            soma=0
-            mean=np.zeros(self.quantity_of_groups)
+        for param_idx, param_line in enumerate(parameters):
 
             for person_idx, group_number in enumerate(self.genes):
                 sum_of_params_by_group[param_idx][group_number -
                                                   1] += param_line[person_idx]
-                # mean[person_idx]
+            
+        # print(sum_of_params_by_group)
 
-            # TODO: Ajustar o código da média e soma
-            for g in range(self.quantity_of_groups):
-                mean[g]=sum_of_params_by_group[param_idx][g] / \
-                    self.persons_by_group
-                soma += mean[g]
+        result = 0
 
-            media=soma / self.quantity_of_groups
-            list_of_means.append(media)
-            # print(mean)
-            # print(soma)
-            print(media)
+        for line in sum_of_params_by_group:
+            # result += abs(line[0] - line[1])
+            for k in range(self.quantity_of_groups):
+                for j in range(k, self.quantity_of_groups):
+                    result += abs(line[k] - line[j])
 
-
-        std_deviation=statistics.stdev(list_of_means)
-        print('STD_DEVIATION = %s ' % std_deviation)
+        print('RESULT -> {}'.format(result))
+        self.fitness = 1 / result
+        print('FITNESS -> {}'.format(1 / result))
         print('*' * 100)
-        self.fitness += 1 / std_deviation
-        print(self.fitness)
+        print('\n')
+
+    def crossover(self, partner):
+        child = Dna(self.quantity_of_groups, self.persons_by_group)
+        # Posição randomica para fazer o corte do array
+        random_position = np.random.randint(self.total_of_persons)
+        first = self.genes[:random_position]
+        second = partner.genes[random_position:]
+        print('POSICAO_DE_CORTE -> %s' %random_position)
+        print(first)
+        print(second)
+        child.genes = first + second
+        return child
 
     # def find_persons_by_group_id(self, group_id: int):
     #     persons_founded = []
@@ -118,3 +120,6 @@ class Dna(object):
     #     # O range vai de x até y-1...
     #     for i in range(1, self.quantity_of_groups + 1):
     #         self.groups.append(self.find_persons_by_group_id(i))
+
+    def __repr__(self):
+        return 'numero dos grupos: %s' % self.genes + '\n'
