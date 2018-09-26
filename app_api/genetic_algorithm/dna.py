@@ -53,7 +53,8 @@ class Dna(object):
         Função para calcular o fitness de cada indivíduo da população
         """
         print('\n')
-        print('*' * 100)
+        print('*' * 30 + ' FITNESS ' + '*' * 30)
+        # print('\n')
         # Matriz para armazenar a soma de cada Param para cada grupo
         sum_of_params_by_group = np.zeros(
             (len(parameters), self.quantity_of_groups))
@@ -64,8 +65,6 @@ class Dna(object):
             for person_idx, group_number in enumerate(self.genes):
                 sum_of_params_by_group[param_idx][group_number -
                                                   1] += param_line[person_idx]
-            
-        # print(sum_of_params_by_group)
 
         result = 0
 
@@ -75,23 +74,35 @@ class Dna(object):
                 for j in range(k, self.quantity_of_groups):
                     result += abs(line[k] - line[j])
 
-        print('RESULT -> {}'.format(result))
         self.fitness = 1 / result
-        print('FITNESS -> {}'.format(1 / result))
-        print('*' * 100)
+        print('%s -> Result: %s' % (self.genes, result))
+        print('%s -> Fitness: %s' % (self.genes, self.fitness))
+        # print('\n')
+        print('*' * 69)
         print('\n')
 
-    def crossover(self, partner):
-        child = Dna(self.quantity_of_groups, self.persons_by_group)
-        # Posição randomica para fazer o corte do array
-        random_position = np.random.randint(self.total_of_persons)
-        first = self.genes[:random_position]
-        second = partner.genes[random_position:]
-        print('POSICAO_DE_CORTE -> %s' %random_position)
-        print(first)
-        print(second)
-        child.genes = first + second
-        return child
+    def crossover(self, partner, random_position: int):
+        child1 = Dna(self.quantity_of_groups, self.persons_by_group)
+        child2 = Dna(self.quantity_of_groups, self.persons_by_group)
+
+        first_child1 = self.genes[:random_position]
+        second_child1 = partner.genes[random_position:]
+
+        first_child2 = self.genes[random_position:]
+        second_child2 = partner.genes[:random_position]
+
+        child1.genes = first_child1 + second_child1
+        child2.genes = first_child2 + second_child2
+        
+        return (child1, child2)
+
+    def mutate(self, mutation_rate):
+        for i, gene in enumerate(self.genes):
+            if random.random() < mutation_rate:
+                pos = np.random.randint(self.total_of_persons)
+                aux = self.genes[pos]
+                self.genes[pos] = gene
+                self.genes[i] = aux
 
     # def find_persons_by_group_id(self, group_id: int):
     #     persons_founded = []
@@ -122,4 +133,4 @@ class Dna(object):
     #         self.groups.append(self.find_persons_by_group_id(i))
 
     def __repr__(self):
-        return 'numero dos grupos: %s' % self.genes + '\n'
+        return '%s' % self.genes
