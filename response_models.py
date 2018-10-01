@@ -1,6 +1,6 @@
-from routes import api
-from flask_restplus import fields
+import json
 
-group_model = api.model('Group', {
-    
-})
+with open('results.json', 'r') as j:
+    data = json.load(j)
+
+print(data)

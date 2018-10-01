@@ -35,8 +35,9 @@ class Dna(object):
         os indexs dos grupos.
         :return: list
         """
-        genes = np.empty(self.total_of_persons)  # criando um espaço vazio na memória
-        groups = np.arange(1, self.quantity_of_groups + 1)
+        genes = np.empty(
+            self.total_of_persons)  # criando um espaço vazio na memória
+        groups = np.arange(self.quantity_of_groups)
         indexes = np.arange(len(genes))
 
         np.put(genes, indexes, groups)
@@ -52,8 +53,6 @@ class Dna(object):
         """
         Função para calcular o fitness de cada indivíduo da população
         """
-        print('\n')
-        print('*' * 30 + ' FITNESS ' + '*' * 30)
         # print('\n')
         # Matriz para armazenar a soma de cada Param para cada grupo
         sum_of_params_by_group = np.zeros(
@@ -63,8 +62,7 @@ class Dna(object):
         for param_idx, param_line in enumerate(parameters):
 
             for person_idx, group_number in enumerate(self.genes):
-                sum_of_params_by_group[param_idx][group_number -
-                                                  1] += param_line[person_idx]
+                sum_of_params_by_group[param_idx][group_number] += param_line[person_idx]
 
         result = 0
 
@@ -75,11 +73,6 @@ class Dna(object):
                     result += abs(line[k] - line[j])
 
         self.fitness = 1 / result
-        print('%s -> Result: %s' % (self.genes, result))
-        print('%s -> Fitness: %s' % (self.genes, self.fitness))
-        # print('\n')
-        print('*' * 69)
-        print('\n')
 
     def crossover(self, partner, random_position: int):
         child1 = Dna(self.quantity_of_groups, self.persons_by_group)
@@ -93,7 +86,7 @@ class Dna(object):
 
         child1.genes = first_child1 + second_child1
         child2.genes = first_child2 + second_child2
-        
+
         return (child1, child2)
 
     def mutate(self, mutation_rate):
@@ -103,34 +96,7 @@ class Dna(object):
                 aux = self.genes[pos]
                 self.genes[pos] = gene
                 self.genes[i] = aux
-
-    # def find_persons_by_group_id(self, group_id: int):
-    #     persons_founded = []
-    #     for person in self.persons:
-    #         if person.group_id == group_id:
-    #             persons_founded.append(person)
-    #     return persons_founded
-
-    # def fill_persons(self):
-    #     """
-    #     Preencher a lista com pessoas. As pessoas estão vindo de um arquivo json
-    #     """
-    #     person_names = PersonNames()
-    #     persons = []
-    #     for idx, group_id in enumerate(self.genes, start=1):
-    #         name = person_names.search_name_by_id(idx)
-    #         person = Person(name=name, person_id=idx, group_id=group_id)
-    #         persons.append(person)
-    #     return persons
-
-    # def form_groups(self):
-    #     """
-    #     Busca as pessoas que tem certo group_id para formar os grupos
-    #     """
-    #     # Para contar de 1 até self.quantity_of_groups + 1
-    #     # O range vai de x até y-1...
-    #     for i in range(1, self.quantity_of_groups + 1):
-    #         self.groups.append(self.find_persons_by_group_id(i))
+                # print('mutated')
 
     def __repr__(self):
-        return '%s' % self.genes
+        return f'{self.genes}, fitness: {round(self.fitness, 2)}'
