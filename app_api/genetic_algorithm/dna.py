@@ -35,8 +35,7 @@ class Dna(object):
         os indexs dos grupos.
         :return: list
         """
-        genes = np.empty(
-            self.total_of_persons)  # criando um espaço vazio na memória
+        genes = np.empty(self.total_of_persons)  # criando um espaço vazio na memória
         groups = np.arange(self.quantity_of_groups)
         indexes = np.arange(len(genes))
 

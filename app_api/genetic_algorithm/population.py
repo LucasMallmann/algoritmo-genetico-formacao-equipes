@@ -95,17 +95,23 @@ class Population(object):
             Irá arrumar para:
             [0, 0, 0, 1, 1, 1, 2, 2, 2]
         '''
-        for line_idx, individual in enumerate(descendants):
-            for group_number in range(self.total_of_groups - 1):
+        for individual in descendants:
+            for group_number in range(self.total_of_groups):
+                # if group_number > 0:
                 group_count = list(individual.genes).count(group_number)
 
                 if group_count > self.persons_by_group:
                     while group_count != self.persons_by_group:
                         rand_idx, rand_number = random.choice(
                             list(enumerate(individual.genes)))
+
                         if rand_number == group_number:
-                            individual.genes[rand_idx] = random.choice(
-                                [x for x in individual.genes if x > group_number])
+                            bigger = [x for x in individual.genes if x > group_number]
+                            if bigger:
+                                individual.genes[rand_idx] = random.choice(bigger)
+                            else:
+                                individual.genes[rand_idx] = group_number + 1
+
                         group_count = list(
                             individual.genes).count(group_number)
 
@@ -124,6 +130,10 @@ class Population(object):
         Irá gerar os descendentes da população.
         Esses descendentes serão escolhidos para formarem uma nova população
         '''
+
+        # self.PARAMETERS = np.random.random_integers(
+        #     1, 5, (3, self.total_of_groups * self.persons_by_group))
+
         amount_survived = round(self.total_population * self.survival_rate)
 
         descendants = self.generate_descendants()
@@ -131,11 +141,18 @@ class Population(object):
 
         mutated_individuals = self.get_mutated_individuals(descendants)
         for mutated in mutated_individuals:
+
+            np.random.shuffle(mutated.genes)
+
             descendants.append(mutated)
+        np.random.shuffle(mutated_individuals)
 
         survived = []
         for k in range(amount_survived):
             survived_individual = self.select_best_dna(self.population)
+            
+            np.random.shuffle(survived_individual.genes)
+            
             survived.append(survived_individual)
 
         # SELECIONAR DOS DESCENDENTES
@@ -145,7 +162,11 @@ class Population(object):
         selected_descendants = []
         for j in range(total_to_select_from_descendants):
             selected_descendant = self.select_best_dna(descendants)
+
+            np.random.shuffle(selected_descendant.genes)
+
             selected_descendants.append(selected_descendant)
+        # np.random.shuffle(selected_descendants)
 
         self.generations += 1
         self.population = survived + selected_descendants + mutated_individuals
