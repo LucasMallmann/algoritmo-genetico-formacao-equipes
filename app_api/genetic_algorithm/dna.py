@@ -50,6 +50,7 @@ class Dna(object):
 
     def calc_fitness(self, parameters: np.ndarray):
         """
+        Não está sendo usada mais
         Função para calcular o fitness de cada indivíduo da população
         """
         # print('\n')
@@ -59,19 +60,17 @@ class Dna(object):
 
         # Calcular a soma de cada param para cada grupo
         for param_idx, param_line in enumerate(parameters):
-
             for person_idx, group_number in enumerate(self.genes):
                 sum_of_params_by_group[param_idx][group_number] += param_line[person_idx]
 
         result = 0
 
         for line in sum_of_params_by_group:
-            # result += abs(line[0] - line[1])
             for k in range(self.quantity_of_groups):
                 for j in range(k, self.quantity_of_groups):
                     result += abs(line[k] - line[j])
 
-        self.fitness = 1 / result
+        self.fitness = 1 / (result ** 2)
 
     def crossover(self, partner, random_position: int):
         child1 = Dna(self.quantity_of_groups, self.persons_by_group)
@@ -89,13 +88,14 @@ class Dna(object):
         return (child1, child2)
 
     def mutate(self, mutation_rate):
-        for i, gene in enumerate(self.genes):
-            if random.random() < mutation_rate:
-                pos = np.random.randint(self.total_of_persons)
-                aux = self.genes[pos]
-                self.genes[pos] = gene
-                self.genes[i] = aux
-                # print('mutated')
+        # for i, gene in enumerate(self.genes):
+            # num = random.random()
+            # if num < mutation_rate:
+        pos1 = np.random.randint(self.total_of_persons)
+        pos2 = np.random.randint(self.total_of_persons)
+        aux = self.genes[pos1]
+        self.genes[pos1] = self.genes[pos2]
+        self.genes[pos2] = aux
 
     def __repr__(self):
         return f'{self.genes}, fitness: {round(self.fitness, 2)}'
