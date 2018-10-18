@@ -32,20 +32,17 @@ def main():
     print('-' * 100)
     selected_individual = population.roulette_selection(population.population)
 
-    fit = [individual.fitness for individual in population.population]
-    print(sum(fit))
-
-    # print(f'Average Fitness - {round(population.average_fitness(), 2)}')
-    # print('\n')
+    print(f'Average Fitness - {round(population.average_fitness(), 2)}')
+    print('\n')
         
-    # for tg in range(TOTAL_GENERATIONS):
-    #     population.generate() # gerar uma nova população
-    #     population.calc_fitness() # calcular o fitness de cada individuo
-    #     for new in population.population:
-    #         print(new)
-    #     print(f'Average Fitness - {round(population.average_fitness(), 2)}')
-    #     print(f'Generation: {population.generations}')
-    #     print('\n')
+    for tg in range(TOTAL_GENERATIONS):
+        population.generate() # gerar uma nova população
+        population.calc_fitness() # calcular o fitness de cada individuo
+        for new in population.population:
+            print(new)
+        print(f'Average Fitness - {round(population.average_fitness(), 2)}')
+        print(f'Generation: {population.generations}')
+        print('\n')
 
 
 if __name__ == '__main__':

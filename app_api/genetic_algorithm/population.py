@@ -98,7 +98,7 @@ class Population(object):
         # Quantidade de cruzamentos
         amount_of_crossing = round(self.total_population * self.crossover_rate)
 
-        for i in range(amount_of_crossing):
+        for _ in range(amount_of_crossing):
             parent1 = self.roulette_selection(self.population) # selecionar um pai
             parent2 = self.roulette_selection(self.population)
             # Retorna as duas crianças geradas pelo cruzamento

@@ -141,6 +141,7 @@ def get_new_generation(selected_individuals):
         offspring[child[0]] = child[1]
     return offspring
 
+
 inputs, outputs = generate_data()
 individual_size = len(inputs[0])
 population_size = 1000
