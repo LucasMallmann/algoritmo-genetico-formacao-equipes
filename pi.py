@@ -4,6 +4,10 @@ import numpy as np
 from numpy import array, dot, mean
 from numpy.linalg import pinv
 from tqdm import tqdm
+from pprint import PrettyPrinter
+from sheets.spreadsheet import get_client
+
+pp = PrettyPrinter()
 
 
 def create_individual(individual_size: int):
@@ -18,16 +22,6 @@ def create_individual(individual_size: int):
 
 def create_population(individual_size: int, population_size: int):
     return [create_individual(individual_size) for i in range(population_size)]
-
-
-def evaluate_population(population: np.ndarray):
-    '''
-    Avalia uma populaçõa de indivíduos e retorna os indivíduos
-    para fazer o cruzamento.
-    '''
-    individuals_to_cross = [select_parent_roulette(population) 
-                            for _ in range(amount_to_crossover)]
-    return individuals_to_cross
 
 
 def crossover(parent_1, parent_2):
@@ -50,9 +44,9 @@ def crossover(parent_1, parent_2):
 
 def my_crossover(parent_1, parent_2, random_pos):
     child_1 = parent_1['individual'][:random_pos] + \
-                parent_2['individual'][random_pos:]
+        parent_2['individual'][random_pos:]
     child_2 = parent_2['individual'][:random_pos] + \
-                parent_1['individual'][random_pos:]
+        parent_1['individual'][random_pos:]
     return child_1, child_2
 
 
@@ -84,7 +78,7 @@ def correct_individual(individual):
         if group_count > persons_by_group:
             while group_count != persons_by_group:
                 rand_idx, rand_number = choice(
-                            list(enumerate(individual)))
+                    list(enumerate(individual)))
                 if rand_number == group_number:
                     bigger = [x for x in individual if x > group_number]
                     if bigger:
@@ -92,7 +86,7 @@ def correct_individual(individual):
                     else:
                         individual[rand_idx] = group_number + 1
                 group_count = list(individual).count(group_number)
-        
+
         if group_count < persons_by_group:
             while group_count != persons_by_group:
                 rand_idx, rand_number = choice(
@@ -100,15 +94,15 @@ def correct_individual(individual):
                 if rand_number > group_number:
                     individual[rand_idx] = group_number
                 group_count = list(individual).count(group_number)
-    
+
     return individual
-            
+
 
 def check_termination_condition(best_individual):
     """
     Checar se o melhor indivíduo atual é melhor ou igual ao esperado
     """
-    if ((best_individual.get('fitness') >= 0.6)
+    if ((best_individual.get('sum_result') <= 6)
             or (generation_count == max_generations)):
         return True
     else:
@@ -120,40 +114,31 @@ def get_offspring_new_population(current_population):
     Irá obter uma parcela da nova população que será gerada
     """
     split_random_position = np.random.randint(1, individual_size)
-    # child_pop_size = int(np.floor(0.9 * population_size))
     descendants_crossover = []
-    # descendants_mutation = []
-    # new_offsprings = []
 
     amount_to_crossover = int(np.floor(crossover_rate * population_size))
     amount_to_mutate = int(np.floor(mutation_rate * population_size))
 
-
     for _ in range(amount_to_crossover):
         parent_1 = select_parent_roulette(current_population)
         parent_2 = select_parent_roulette(current_population)
-        child_1, child_2 = my_crossover(parent_1, 
-                                        parent_2, 
+        child_1, child_2 = my_crossover(parent_1,
+                                        parent_2,
                                         split_random_position)
         child_1 = correct_individual(child_1)
         child_2 = correct_individual(child_2)
         descendants_crossover.append(child_1)
         descendants_crossover.append(child_2)
 
-    individuals_to_mutate = sample(descendants_crossover, 
-                                    amount_to_mutate)
+    individuals_to_mutate = sample(descendants_crossover,
+                                   amount_to_mutate)
     descendants_mutated = [mutate(ind) for ind in individuals_to_mutate]
-    # print(descendants_mutated)
-    # [print(d) for d in descendants_crossover]
-    # print(len(descendants_crossover))
-    # print('\n')
-    # print('Descendants')
 
     descendants = descendants_crossover + descendants_mutated
+    # Calcular o fitness dos novos descendentes
     descendants = calc_population_fitness(descendants, parameters)
     descendants = sorted(descendants, key=lambda i: i['sum_result'])
 
-    # [print(d) for d in descendants]
     total_to_select = population_size - amount_survived
     return descendants[:total_to_select]
 
@@ -163,11 +148,10 @@ def get_fitness(individual, parameters: np.ndarray) -> dict:
     Irá obter a fitness de cada indivíduo
     '''
     sum_of_params_by_group = np.zeros(
-            (len(parameters), total_groups))
+        (len(parameters), total_groups))
     for param_idx, param_line in enumerate(parameters):
         for person_idx, group_number in enumerate(individual):
-            sum_of_params_by_group[param_idx] \
-                                        [group_number] += param_line[person_idx]
+            sum_of_params_by_group[param_idx][group_number] += param_line[person_idx]
 
     result = 0
     for line in sum_of_params_by_group:
@@ -182,11 +166,10 @@ def get_fitness(individual, parameters: np.ndarray) -> dict:
 def calc_population_fitness(
         population: np.ndarray,
         parameters: np.ndarray):
-    sum_fitness = 0
     calculated_fit = [get_fitness(ind, parameters)
-                        for ind in population]
+                      for ind in population]
     total_fit = sum([ind.get('fitness')
-                for ind in calculated_fit])
+                     for ind in calculated_fit])
     for individual in calculated_fit:
         individual['fitness'] = individual['fitness'] / total_fit
 
@@ -214,56 +197,138 @@ def select_parent_roulette(population):
             return individual
 
 
-total_groups = 3
-population_size = 100
-individual_size = 9
+TP = [20, 50, 100, 150]
+NG = [50, 100, 150, 200, 250, 300]
+TC = [0.6, 0.7, 0.8, 0.9]
+TM = [0.05, 0.1, 0.15, 0.20]
+IG = [0, 0.1, 0.2, 0.3]
+
+total_groups = 4
+individual_size = 20
 probability_of_individual_mutating = 0.1
-ig = 0.1
-max_generations = 100
-probability_of_gene_mutating = 0.25
-mutation_rate = 0.5
-crossover_rate = 0.7
-persons_by_group = int(individual_size / total_groups)
-parameters = np.random.random_integers(1, 5, (3, total_groups * persons_by_group))
-amount_survived = int(np.floor(ig * population_size))
 
-best_individuals_stash = [create_individual(individual_size)]
-initial_population = create_population(individual_size, population_size)
-termination = False
-generation_count = 0
+import gspread
+client = get_client(
+    ['https://spreadsheets.google.com/feeds',
+     'https://www.googleapis.com/auth/drive']
+)
 
-print(f'Parameters = \n{parameters}')
-print('-' * 80)
-initial_population = calc_population_fitness(initial_population, parameters)
-current_population = initial_population
-[print(ind) for ind in initial_population]
-initial_best_ind = sorted(current_population, key=lambda i: i['sum_result'])[0]
-print(f'Initial best individual - {initial_best_ind}')
-print('-' * 50)
+worksheet = client.open('Results - TG').sheet1
 
-for i in range(max_generations):
-    # get_new_generation(current_population)
-    descendants = get_offspring_new_population(current_population)
-    new_generation = get_new_generation(current_population, descendants)
-    gen_fit = sum([n['fitness'] for n in new_generation])
-    # [print(n) for n in new_generation]
-    # print(f'new generation fit - {gen_fit}')
-    new_individuals = [ind['individual'] for ind in new_generation]
-    current_population = calc_population_fitness(new_individuals, parameters)
-    print('Dispair')
-    [print(ind) for ind in current_population]
-    # TODO: AJUSTAR O CÁLCULO DO FITNESS DA POPULAÇÃO
-    # current_population = calc_population_fitness(current_population, parameters)
-    # print('-' * 50)
-    # print('New Population')
-    # [print(pop) for pop in current_population]
-    best_individual = sorted(current_population, key=lambda i: i['sum_result'])[0]
-    print(f'Best Individual = {best_individual}')
-    print('\n')
+# Parâmetros genéticos
+# population_size = 100
+# max_generations = 100
+# mutation_rate = 0.5
+# crossover_rate = 0.7
+# ig = 0.1
+
+# persons_by_group = int(individual_size / total_groups)
+# parameters = np.random.random_integers(
+#     1, 5, (3, total_groups * persons_by_group))
+
+# best_individuals_stash = [create_individual(individual_size)]
+# initial_population = create_population(individual_size, population_size)
+# termination = False
+# generation_count = 0
+
+# print(f'Parameters (Skills) = \n{parameters}')
+# print('-' * 80)
+# initial_population = calc_population_fitness(initial_population, parameters)
+# current_population = initial_population
+# [print(ind) for ind in initial_population]
+# initial_best_ind = sorted(current_population, key=lambda i: i['sum_result'])[0]
+# print(f'Initial best individual - {initial_best_ind}')
+# print('-' * 50)
+
+ag = 1
+
+for population_size in TP:
+    for max_generations in NG:
+        for crossover_rate in TC:
+            for mutation_rate in TM:
+                for ig in IG:
+
+                    print('Genetic Parameters')
+                    print(f'AG number = {ag}')
+                    print(f'Population Size - {population_size}')
+                    print(f'Max Generations - {max_generations}')
+                    print(f'Crossover Rate - {crossover_rate}')
+                    print(f'Mutation Rate - {mutation_rate}')
+                    print(f'Generation Increment (survival) - {ig}')
+
+                    print('\n')
+
+                    persons_by_group = int(individual_size / total_groups)
+                    parameters = np.random.random_integers(
+                        1, 5, (3, total_groups * persons_by_group))
+
+                    best_individuals_stash = [create_individual(individual_size)]
+                    initial_population = create_population(individual_size, population_size)
+                    termination = False
+                    generation_count = 0
+
+                    # print(f'Parameters (Skills) = \n{parameters}')
+                    pp.pprint(f'Parameters - {parameters}')
+                    print('-' * 80)
+                    initial_population = calc_population_fitness(initial_population, parameters)
+                    current_population = initial_population
+                    [print(ind) for ind in initial_population]
+                    initial_best_ind = sorted(current_population, key=lambda i: i['sum_result'])[0]
+                    print('\n')
+                    print(f'Initial best individual - {initial_best_ind}')
+                    print('-' * 50)
+                    amount_survived = int(np.floor(ig * population_size))
+
+                    while termination is False:
+                        descendants = get_offspring_new_population(current_population)
+                        new_generation = get_new_generation(current_population, descendants)
+
+                        gen_fit = sum([n['fitness'] for n in new_generation])
+                        new_individuals = [ind['individual'] for ind in new_generation]
+                        current_population = calc_population_fitness(new_individuals, parameters)
+
+                        # [pp.pprint(ind) for ind in current_population]
+
+                        best_individual = sorted(
+                            current_population, key=lambda i: i['sum_result'])[0]
+                        termination = check_termination_condition(best_individual)
+                        generation_count += 1
+                        print(f'Best Individual = {best_individual}')
+                        print('\n')
+
+                    # line = [
+                    #     ag, population_size, max_generations, crossover_rate, mutation_rate, ig,
+                    #     initial_best_ind['individual'], initial_best_ind['sum_result'],
+                    #     best_individual['individual'], best_individual['sum_result'],
+                    # ]
+
+                    line = [
+                        ag, population_size, max_generations, crossover_rate, mutation_rate, ig,
+                        str(initial_best_ind['individual']), str(initial_best_ind['sum_result']),
+                        str(best_individual['individual']), str(best_individual['sum_result']),
+                    ]
+                    
+                    worksheet.append_row(line)
+
+                    ag += 1
+
+                    print('\n')
+                    print('\n')
 
 
 
-# current_population = calc_population_fitness(new_individuals, parameters)
-#     current_best = sorted(current_population, key=lambda i: i['sum_result'])[0]
-#     print(f'Best Individual - {current_best}')
+# for i in range(max_generations):
+#     descendants = get_offspring_new_population(current_population)
+#     new_generation = get_new_generation(current_population, descendants)
+
+#     gen_fit = sum([n['fitness'] for n in new_generation])
+#     new_individuals = [ind['individual'] for ind in new_generation]
+#     current_population = calc_population_fitness(new_individuals, parameters)
+
+#     [pp.pprint(ind) for ind in current_population]
+
+#     best_individual = sorted(
+#         current_population, key=lambda i: i['sum_result'])[0]
+
+#     print(f'Best Individual = {best_individual}')
 #     print('\n')

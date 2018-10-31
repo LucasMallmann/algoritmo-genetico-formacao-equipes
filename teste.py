@@ -1,49 +1,46 @@
-from app_api.genetic_algorithm.population import Population
-from app_api.genetic_algorithm.dna import Dna
+# /home/mallmann/TG/FlaskApp/sheets/credentials
+from __future__ import print_function
+from googleapiclient.discovery import build
+from httplib2 import Http
+from oauth2client import file, client, tools
 
-# Não está utilizando essas listas ainda
-TP_LIST = [20, 50, 100, 200, 500]
-TC_LIST = [0.6, 0.7, 0.8, 0.9]
-MUTATION_RATE_LIST = [0.01, 0.05, 0.1, 0.2]
-TOTAL_GENERATIONS_LIST = [20, 50, 100, 200, 500, 1000]
+from sheets.spreadsheet import get_connection_service
 
-TOTAL_GROUPS = 3
-PERSONS_BY_GROUP = 3
-TP = 10
-CROSSOVER_RATE = 0.6
-MUTATION_RATE = 0.1
-SURVIVAL_POPULATION_RATE = 0.2
-TOTAL_GENERATIONS = 200
+# If modifying these scopes, delete the file token.json.
+# SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly'
+SCOPES = 'https://www.googleapis.com/auth/spreadsheets'
 
+service = get_connection_service(SCOPES)
 
-def main():
-    # Geração da População inicial
-    population = Population(total_population=TP,
-                            mutation_rate=MUTATION_RATE,
-                            crossover_rate=CROSSOVER_RATE,
-                            survival_rate=SURVIVAL_POPULATION_RATE)
+# # The ID and range of a sample spreadsheet.
+# SAMPLE_SPREADSHEET_ID = '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms'
+# SAMPLE_RANGE_NAME = 'Class Data!A2:E'
 
-    population.generate_initial_population(TOTAL_GROUPS, PERSONS_BY_GROUP)
-    population.calc_fitness()
+# def main():
+#     """Shows basic usage of the Sheets API.
+#     Prints values from a sample spreadsheet.
+#     """
+#     store = file.Storage('./sheets/credentials/token.json')
+#     creds = store.get()
+#     if not creds or creds.invalid:
+#         flow = client.flow_from_clientsecrets('./sheets/credentials/credentials.json', SCOPES)
+#         creds = tools.run_flow(flow, store)
+#     service = build('sheets', 'v4', http=creds.authorize(Http()))
 
-    for ind in population.population:
-        print(ind)
+#     # Call the Sheets API
+#     SPREADSHEET_ID = '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms'
+#     RANGE_NAME = 'Class Data!A2:E'
+#     result = service.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID,
+#                                                 range=RANGE_NAME).execute()
+#     values = result.get('values', [])
 
-    print('-' * 100)
-    selected_individual = population.roulette_selection(population.population)
+#     if not values:
+#         print('No data found.')
+#     else:
+#         print('Name, Major:')
+#         for row in values:
+#             # Print columns A and E, which correspond to indices 0 and 4.
+#             print('%s, %s' % (row[0], row[4]))
 
-    print(f'Average Fitness - {round(population.average_fitness(), 2)}')
-    print('\n')
-        
-    for tg in range(TOTAL_GENERATIONS):
-        population.generate() # gerar uma nova população
-        population.calc_fitness() # calcular o fitness de cada individuo
-        for new in population.population:
-            print(new)
-        print(f'Average Fitness - {round(population.average_fitness(), 2)}')
-        print(f'Generation: {population.generations}')
-        print('\n')
-
-
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()
