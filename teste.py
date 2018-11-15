@@ -1,46 +1,40 @@
-# /home/mallmann/TG/FlaskApp/sheets/credentials
-from __future__ import print_function
-from googleapiclient.discovery import build
-from httplib2 import Http
-from oauth2client import file, client, tools
+import numpy as np
+from pprint import PrettyPrinter
 
-from sheets.spreadsheet import get_connection_service
+pp = PrettyPrinter()
 
-# If modifying these scopes, delete the file token.json.
-# SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly'
-SCOPES = 'https://www.googleapis.com/auth/spreadsheets'
+def get_fitness(individual, parameters: np.ndarray) -> dict:
+    '''
+    Irá obter a fitness de cada indivíduo
+    '''
+    sum_of_params_by_group = np.zeros(
+        (len(parameters), total_groups))
+    for param_idx, param_line in enumerate(parameters):
+        for person_idx, group_number in enumerate(individual):
+            sum_of_params_by_group[param_idx][group_number] += param_line[person_idx]
 
-service = get_connection_service(SCOPES)
+    pp.pprint(sum_of_params_by_group)
 
-# # The ID and range of a sample spreadsheet.
-# SAMPLE_SPREADSHEET_ID = '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms'
-# SAMPLE_RANGE_NAME = 'Class Data!A2:E'
 
-# def main():
-#     """Shows basic usage of the Sheets API.
-#     Prints values from a sample spreadsheet.
-#     """
-#     store = file.Storage('./sheets/credentials/token.json')
-#     creds = store.get()
-#     if not creds or creds.invalid:
-#         flow = client.flow_from_clientsecrets('./sheets/credentials/credentials.json', SCOPES)
-#         creds = tools.run_flow(flow, store)
-#     service = build('sheets', 'v4', http=creds.authorize(Http()))
+    result = 0
+    for line in sum_of_params_by_group:
+        for k in range(total_groups):
+            for j in range(k, total_groups):
+                result += abs(line[k] - line[j])
 
-#     # Call the Sheets API
-#     SPREADSHEET_ID = '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms'
-#     RANGE_NAME = 'Class Data!A2:E'
-#     result = service.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID,
-#                                                 range=RANGE_NAME).execute()
-#     values = result.get('values', [])
+    fitness = 1 / (result ** 2)
+    return {'individual': individual, 'fitness': result, 'probability': fitness}
 
-#     if not values:
-#         print('No data found.')
-#     else:
-#         print('Name, Major:')
-#         for row in values:
-#             # Print columns A and E, which correspond to indices 0 and 4.
-#             print('%s, %s' % (row[0], row[4]))
 
-# if __name__ == '__main__':
-#     main()
+total_groups = 3
+
+parameters = [
+	[5, 4, 3, 4, 2, 3, 7, 4, 5],
+	[2, 5, 4, 1, 1, 4, 3, 2, 1],
+	[3, 4, 3, 2, 2, 5, 5, 4, 1]
+]
+
+
+individual = [0, 2, 1, 2, 1, 0 ,0 ,2, 1]
+fit = get_fitness(individual, parameters)
+print(fit)

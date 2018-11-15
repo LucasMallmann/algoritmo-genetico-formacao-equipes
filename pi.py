@@ -197,23 +197,25 @@ def select_parent_roulette(population):
             return individual
 
 
-TP = [20, 50, 100, 150]
+TP = [100, 50, 20, 150]
 NG = [50, 100, 150, 200, 250, 300]
 TC = [0.6, 0.7, 0.8, 0.9]
-TM = [0.05, 0.1, 0.15, 0.20]
-IG = [0, 0.1, 0.2, 0.3]
+TM = [0.1, 0.05, 0.15, 0.20]
+IG = [0.1, 0, 0.2, 0.3]
 
 total_groups = 4
-individual_size = 20
+individual_size = 200
 probability_of_individual_mutating = 0.1
 
-import gspread
+# import gspread
 client = get_client(
     ['https://spreadsheets.google.com/feeds',
      'https://www.googleapis.com/auth/drive']
 )
 
-worksheet = client.open('Results - TG').sheet1
+# worksheet = client.open('Resultados_TG').sheet1
+sheet = client.open_by_key("1gV3IhvOE_nLZpkbqdrz8kzJWe62gNZ88ExNndQ9SU3Q")
+worksheet = sheet.worksheet("data2")
 
 # Parâmetros genéticos
 # population_size = 100
@@ -225,6 +227,8 @@ worksheet = client.open('Results - TG').sheet1
 # persons_by_group = int(individual_size / total_groups)
 # parameters = np.random.random_integers(
 #     1, 5, (3, total_groups * persons_by_group))
+
+# pp.pprint(parameters)
 
 # best_individuals_stash = [create_individual(individual_size)]
 # initial_population = create_population(individual_size, population_size)
@@ -296,12 +300,6 @@ for population_size in TP:
                         print(f'Best Individual = {best_individual}')
                         print('\n')
 
-                    # line = [
-                    #     ag, population_size, max_generations, crossover_rate, mutation_rate, ig,
-                    #     initial_best_ind['individual'], initial_best_ind['sum_result'],
-                    #     best_individual['individual'], best_individual['sum_result'],
-                    # ]
-
                     line = [
                         ag, population_size, max_generations, crossover_rate, mutation_rate, ig,
                         str(initial_best_ind['individual']), str(initial_best_ind['sum_result']),
@@ -314,21 +312,3 @@ for population_size in TP:
 
                     print('\n')
                     print('\n')
-
-
-
-# for i in range(max_generations):
-#     descendants = get_offspring_new_population(current_population)
-#     new_generation = get_new_generation(current_population, descendants)
-
-#     gen_fit = sum([n['fitness'] for n in new_generation])
-#     new_individuals = [ind['individual'] for ind in new_generation]
-#     current_population = calc_population_fitness(new_individuals, parameters)
-
-#     [pp.pprint(ind) for ind in current_population]
-
-#     best_individual = sorted(
-#         current_population, key=lambda i: i['sum_result'])[0]
-
-#     print(f'Best Individual = {best_individual}')
-#     print('\n')
